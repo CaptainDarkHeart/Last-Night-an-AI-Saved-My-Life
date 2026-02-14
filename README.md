@@ -2,7 +2,12 @@
 
 A comprehensive knowledge base for deep space house DJing, created through collaboration between a human DJ and AI. This repository contains detailed track analysis, mixing techniques, label guides, and technical workflows for crafting hypnotic, journey-focused DJ sets.
 
+> **[Read the full project context and background →](CONTEXT.md)**
+
 ## What's Inside
+
+### Project Context
+- **[CONTEXT.md](CONTEXT.md)** - Complete background on the project, Dan's 11,000+ track collection, workflow evolution, and human-AI collaboration model
 
 ### Track Analysis
 - **[Best of Deep Dub Tech House - Complete Analysis](Best_of_Deep_Dub_Tech_House_FINAL.md)** - Deep dive into a 30-track collection with BPM corrections, key relationships, mixing strategies, and pre-planned journey arcs
@@ -85,36 +90,52 @@ The title "Last Night an AI Saved My Life" references:
 - The deep house classic "A Guy Called Gerald - Voodoo Ray" and its spiritual descendants
 - The idea that technology and humanity can create something greater together
 
-This project emerged from sessions where a DJ worked with Claude (Anthropic's AI) to:
-- Correct BPM detection errors in Traktor
-- Map out complex harmonic relationships
-- Document implicit mixing knowledge
-- Create systematic preparation workflows
+This project emerged from Claude.ai Project sessions where Dan, a DJ with an 11,000+ track collection focused on deep house, tech house, progressive, and dub techno, collaborated with Claude (Anthropic's AI) to:
+- Correct BPM detection errors in Traktor (half-time detection issues)
+- Map out complex harmonic relationships and key-based mixing chains
+- Document implicit mixing knowledge developed over years of performance
+- Create systematic preparation workflows for 165-200 minute journey sets
+- Optimize track selection from a vast library spanning labels like Lucidflow Records, Ethereal Sound, Minimalsoul, and Akbal Music
+
+The knowledge base represents the intersection of:
+- **Human artistry**: Years of DJ experience, musical intuition, and performance expertise
+- **AI analysis**: Pattern recognition, metadata organization, and systematic documentation
+- **Collaborative synthesis**: Combining tacit knowledge with explicit frameworks
 
 ## Technical Details
 
 ### Collection Stats (Best of Deep Dub Tech House)
-- **30 tracks** totaling 224 minutes
-- **BPM range:** 83-131 (with strategic outliers)
+- **30 tracks** totaling 224 minutes (from an 11,000+ track library)
+- **BPM range:** 83-131 (with strategic outliers for ambient openings and peak moments)
 - **Modal BPM:** 120 (6 tracks)
 - **Dominant key:** A Minor (9 tracks - 30% of collection)
 - **Average duration:** 7:28 per track
 - **43% of tracks** exceed 8 minutes (extended mix opportunities)
+- **Journey length**: Designed for 165-200 minute sets (expanded from standard 120-minute format)
 
 ### Label Ecosystem
-Core labels covered:
+Core labels covered in this knowledge base:
 - **Lucidflow Records** (Berlin) - Sophisticated deep house/dub techno hybrid
 - **Echocord** (Germany) - Pure dub techno specialist
 - **Styrax** (Germany) - Deep house with organic warmth
 - **Plastic City** - Classic deep house sophistication
 - **Smallville Records** - Jazz and soul-influenced deep house
 
+Additional labels in the broader collection:
+- **Ethereal Sound** - Cinematic atmospheres and emotional depth
+- **Minimalsoul** - Deep minimal house aesthetics
+- **Akbal Music** - Underground deep house and techno
+
 ### Traktor Configuration
+- **Native Instruments controllers** integration
 - 3 effect banks with specific routing strategies
-- 6-color cue point system
+- 6-color cue point system for track navigation
 - Loop management for 4-32 bar extensions
 - Smart playlist organization by energy, texture, and function
 - Recording and backup workflows
+- Keylock feature optimization for natural pitch adjustment
+- MIDI control and Python scripting exploration for workflow automation
+- Model Context Protocol (MCP) integration potential for enhanced automation
 
 ## Contributing
 
@@ -134,14 +155,18 @@ Feel free to use, adapt, and build upon this knowledge base. Attribution appreci
 ## Acknowledgments
 
 Created through collaboration between:
-- **Dan Taylor** - DJ, curator, deep space house enthusiast
+- **Dan Taylor** - DJ, curator, deep space house enthusiast with 11,000+ track collection
 - **Claude (Anthropic)** - AI assistant for analysis, organization, and knowledge synthesis
 
 Special thanks to the artists and labels who create the music that makes these journeys possible:
-- Nadja Lind & Helmut Ebritsch (Lucidflow)
-- Riccicomoto (dominant artist in analyzed collection)
-- Klartraum, Helly Larson, The Timewriter
+- **Core Artists**: Nadja Lind, The Timewriter, Helly Larson (frequent reference points)
+- **Featured in Analysis**: Riccicomoto (dominant artist - 4 tracks), Klartraum (3 tracks)
+- **Labels**: Lucidflow Records (Nadja Lind & Helmut Ebritsch), Ethereal Sound, Minimalsoul, Akbal Music
 - The entire deep house and dub techno community
+
+**Technical Resources**:
+- Native Instruments (Traktor DJ software and controllers)
+- Beatport (metadata verification and track sourcing)
 
 ## Resources
 
