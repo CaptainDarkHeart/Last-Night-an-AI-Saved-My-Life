@@ -1,0 +1,17 @@
+# Track Selection Engine - Dependencies
+
+# Data handling
+pandas>=2.0.0
+numpy>=1.26.0
+
+# Configuration
+pyyaml>=6.0
+
+# Audio metadata
+mutagen>=1.47.0
+musicbrainzngs>=0.7.1
+
+# Development (optional)
+pytest>=7.0.0
+black>=23.0.0
+ruff>=0.1.0
