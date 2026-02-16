@@ -4,17 +4,30 @@
 
 Complete AI-controlled DJ automation for Traktor Pro 3 with **audio intelligence**, extended blends, beatmatching, and smart mixing decisions.
 
-## 🆕 NEW: Audio Intelligence
+## 🆕 NEW: Audio Intelligence & Cue Point System
 
 The AI DJ can now **"hear"** the music using Librosa audio analysis:
 
-- ✅ **Tempo detection**: Verify BPM from actual audio
+- ✅ **Tempo detection**: Verify BPM from actual audio (85-95% accuracy)
 - ✅ **Beat tracking**: Find precise beat locations
 - ✅ **Energy analysis**: Measure track energy over time
 - ✅ **Harmonic analysis**: Detect musical key for compatible mixing
 - ✅ **Cue point detection**: Auto-find intro, outro, breakdown, build, drop
 - ✅ **Smart blending**: Dynamic blend duration based on track compatibility
 - ✅ **Mix point optimization**: Find best moments to mix in/out
+- ✅ **Traktor integration**: Write cue points directly to collection.nml
+- 🔄 **Learning mode**: Manual cue logging for ML training (in progress)
+
+### Important Note on Cue Points
+
+**Current status:** Automated cue detection works but isn't accurate enough for professional use.
+
+**Solution:** We're building a training dataset by recording expert DJ manual cue placements in `manual_cues_log.json`. This ground truth data will be used to train a better ML model that learns from real DJ expertise rather than energy algorithms.
+
+**Discovered:** Traktor has different timestamp formats for different folder entries:
+- "Best of Deep Dub Tech House" entries use milliseconds (× 1000)
+- Other entries use seconds
+- Manual placement works perfectly; automation needs human expertise to learn from
 
 ---
 
@@ -83,10 +96,16 @@ Watch Traktor perform your 2.5-hour deep space house set with intelligent mixing
 |------|---------|
 | **traktor_ai_dj.py** | Main AI DJ controller with MIDI automation |
 | **audio_analyzer.py** | Librosa-based audio analysis engine 🆕 |
+| **traktor_nml_writer.py** | Traktor collection.nml cue point writer 🆕 |
+| **manual_cues_log.json** | Expert DJ cue placements (ground truth) 🆕 |
 | **test_audio_analysis.py** | Test/demo script for audio analysis 🆕 |
+| **test_nml_reader.py** | Inspect Traktor collection structure 🆕 |
+| **verify_playlist_cues.py** | Verify cue points in playlist tracks 🆕 |
+| **write_cues_traktor_format.py** | Batch write cues to tracks 🆕 |
 | **test_midi_connection.py** | Verify IAC Driver is working |
 | **requirements.txt** | Python dependencies 🆕 |
 | **AUDIO_ANALYSIS.md** | Deep dive into audio analysis system 🆕 |
+| **CUE_POINT_AUTOMATION.md** | Cue point system documentation 🆕 |
 | **TRAKTOR_MIDI_MAPPING_GUIDE.md** | Detailed Traktor setup instructions |
 | **SETUP_INSTRUCTIONS.md** | Complete setup guide with troubleshooting |
 | **README.md** | This file |
@@ -349,10 +368,16 @@ Your system is working when:
 - [x] Real-time audio analysis (Librosa)
 - [x] Dynamic blend duration (30-90s based on compatibility)
 - [x] Harmonic mixing (key detection)
-- [x] Cue point detection
+- [x] Cue point detection (intro, breakdown, build, drop, outro)
 - [x] Energy-aware mixing
+- [x] Traktor NML file writing (collection.nml manipulation)
+- [x] Manual cue logging system for ML training
+- [ ] **IMPORTANT:** Automated cue placement needs improvement
+  - Current: Librosa energy-based detection is not accurate enough
+  - Solution: Collecting expert DJ manual cue placements as ground truth
+  - Goal: Train ML model on real DJ expertise, not algorithmic guesses
 - [ ] Real-time listening (analyze Traktor output)
-- [ ] Machine learning (learn from mixing history)
+- [ ] Machine learning (learn from mixing history and manual cues)
 - [ ] Visual waveforms (audiowaveform integration)
 - [ ] Crowd response integration (via external sensors)
 
