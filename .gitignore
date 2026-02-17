@@ -57,3 +57,8 @@ wheels/
 # Logs
 *.log
 logs/
+
+# Analysis outputs (generated files)
+analysis/
+*.png
+*.txt

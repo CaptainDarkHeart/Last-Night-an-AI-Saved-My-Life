@@ -142,6 +142,13 @@ Additional labels in the broader collection:
 - MIDI control and Python scripting exploration for workflow automation
 - Model Context Protocol (MCP) integration potential for enhanced automation
 
+### Automated Cue Point System
+- **[Stripes Analysis Documentation](docs/stripes-analysis.md)** - Deep dive into Traktor's stripes file format
+- **Librosa-based audio analysis** for beat detection, tempo analysis, and onset detection
+- **Stripes-based structural analysis** for breakdown, build-up, and drop detection
+- **Hybrid approach** combining both systems for intelligent cue point placement
+- **Python automation scripts** for batch processing entire libraries
+
 ## Contributing
 
 This is a living document. Contributions welcome for:
