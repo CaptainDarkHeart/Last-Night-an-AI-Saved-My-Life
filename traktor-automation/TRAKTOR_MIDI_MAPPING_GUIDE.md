@@ -46,6 +46,35 @@ This guide will help you set up the MIDI mapping in Traktor Pro 3 so the Python 
 |----------|------|--------------|-----|------------|
 | **Crossfader** | In | Ch1 | 10 | Mixer > Crossfader |
 
+### EQ CONTROLS (AI + Z1 Soft-Takeover)
+
+These enable automated EQ transitions (bass swaps, filter sweeps) while still
+letting you override any knob physically on the Z1 at any time.
+
+| Function | Type | MIDI Channel | CC# | Assignment |
+|----------|------|--------------|-----|------------|
+| **Deck A EQ High** | In | Ch1 | 50 | Deck A > EQ High |
+| **Deck A EQ Mid** | In | Ch1 | 51 | Deck A > EQ Mid |
+| **Deck A EQ Low** | In | Ch1 | 52 | Deck A > EQ Low |
+| **Deck B EQ High** | In | Ch1 | 53 | Deck B > EQ High |
+| **Deck B EQ Mid** | In | Ch1 | 54 | Deck B > EQ Mid |
+| **Deck B EQ Low** | In | Ch1 | 55 | Deck B > EQ Low |
+| **Deck A Mixer FX** | In | Ch1 | 56 | Deck A > Mixer FX Adjust |
+| **Deck B Mixer FX** | In | Ch1 | 57 | Deck B > Mixer FX Adjust |
+
+**Mapping settings for all EQ/Filter entries:**
+- Type of Controller: **Fader/Knob**
+- Interaction Mode: **Direct**
+- Soft Takeover: **ON** ← critical for Z1 coexistence
+- Invert: OFF
+- Resolution: **Fine (256)**
+- Controller Range: 0 – 127 (center 64 = 0 dB / neutral)
+
+> **How soft-takeover works here:** The AI sends EQ moves via IAC. If you
+> grab a Z1 knob mid-transition, Traktor's soft-takeover stops the jump —
+> your physical position takes over smoothly. The Python script also tracks
+> this internally and skips commands on any band you're holding.
+
 ### BROWSER NAVIGATION
 
 | Function | Type | MIDI Channel | CC# | Assignment |
@@ -167,7 +196,8 @@ Once mapping is complete:
 
 ---
 
-**Total Mappings:** 14 In + 4 Out = 18 total
+**Total Mappings:** 22 In + 4 Out = 26 total
+*(+8 EQ/MixerFX mappings added for Z1 soft-takeover integration)*
 
 **Estimated Setup Time:** 15-20 minutes
 

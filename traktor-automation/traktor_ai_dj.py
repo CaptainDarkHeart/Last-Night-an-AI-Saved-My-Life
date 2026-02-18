@@ -93,7 +93,28 @@ class TraktorAIDJ:
             'deck_b_playback_position': 41,
             'deck_a_is_playing': 42,
             'deck_b_is_playing': 43,
+
+            # EQ — Deck A (IAC Driver → Traktor Generic MIDI mapping)
+            'deck_a_eq_high': 50,
+            'deck_a_eq_mid': 51,
+            'deck_a_eq_low': 52,
+
+            # EQ — Deck B
+            'deck_b_eq_high': 53,
+            'deck_b_eq_mid': 54,
+            'deck_b_eq_low': 55,
+
+            # Mixer FX (mapped as "filter" — Traktor Mixer FX Adjust)
+            'deck_a_filter': 56,
+            'deck_b_filter': 57,
         }
+
+        # Soft-takeover state for Z1 EQ knobs.
+        # When the Z1 sends a CC matching one of our EQ controls, we pause
+        # automation on that control until the physical knob crosses back
+        # through the last value we commanded (standard soft-takeover logic).
+        self._eq_override: Dict[int, bool] = {}   # cc_number → override active
+        self._eq_last_sent: Dict[int, int] = {}    # cc_number → last value we sent
 
         self.monitor_thread: Optional[threading.Thread] = None
         self.running = False
@@ -148,11 +169,164 @@ class TraktorAIDJ:
             elif cc == self.MIDI_CC['deck_b_is_playing'] and self.active_deck == 2:
                 self.is_playing = (value > 0)
 
+            # Soft-takeover: detect Z1 physical EQ/filter movement.
+            # The Z1 in Native mode doesn't echo MIDI back to IAC, so any CC
+            # on our EQ range (50-57) arriving here comes from IAC loopback
+            # or a future Z1-in-MIDI-mode setup. If it arrives, compare to
+            # last commanded value to decide whether override is active.
+            elif cc in range(50, 58):
+                last = self._eq_last_sent.get(cc)
+                if last is not None and cc in self._eq_override:
+                    if self._eq_override[cc]:
+                        # Check if physical knob has crossed our last commanded
+                        # value — if so, release the override (standard soft-takeover)
+                        if last is not None and abs(value - last) <= 2:
+                            self._eq_override[cc] = False
+                            self.log(f"🎚 Z1 EQ soft-takeover released (CC{cc})")
+                    else:
+                        # Physical move while automation isn't running — activate override
+                        self._eq_override[cc] = True
+                        self.log(f"🖐 Z1 EQ override active (CC{cc}, value={value})")
+
     def send_cc(self, control: int, value: int, channel: int = 0):
         """Send a MIDI Control Change message."""
         if self.output_port:
             msg = Message('control_change', control=control, value=value, channel=channel)
             self.output_port.send(msg)
+
+    # ------------------------------------------------------------------
+    # EQ / Filter control (with soft-takeover support for Z1 knobs)
+    # ------------------------------------------------------------------
+
+    EQ_CENTER = 64   # MIDI value for 0 dB (knob at noon)
+    EQ_MIN    = 0    # Full cut
+    EQ_MAX    = 127  # Full boost
+
+    def _send_eq_cc(self, cc: int, value: int):
+        """Send an EQ CC only if the Z1 physical knob hasn't taken over."""
+        value = max(self.EQ_MIN, min(self.EQ_MAX, value))
+        if self._eq_override.get(cc, False):
+            return  # Physical knob has priority — skip
+        self._eq_last_sent[cc] = value
+        self.send_cc(cc, value)
+
+    def set_eq(self, deck: int, band: str, value: int):
+        """
+        Set a single EQ band on a deck, respecting soft-takeover.
+
+        Args:
+            deck:  1 = Deck A, 2 = Deck B
+            band:  'high', 'mid', or 'low'
+            value: 0 (full cut) → 64 (0 dB) → 127 (boost)
+        """
+        key = f"deck_{'a' if deck == 1 else 'b'}_eq_{band}"
+        cc = self.MIDI_CC.get(key)
+        if cc is None:
+            self.log(f"⚠ Unknown EQ key: {key}")
+            return
+        self._send_eq_cc(cc, value)
+
+    def set_filter(self, deck: int, value: int):
+        """
+        Set the Mixer FX Adjust knob on a deck.
+
+        Args:
+            deck:  1 = Deck A, 2 = Deck B
+            value: 0–127 (64 = neutral/centre)
+        """
+        key = f"deck_{'a' if deck == 1 else 'b'}_filter"
+        cc = self.MIDI_CC[key]
+        self._send_eq_cc(cc, value)
+
+    def reset_eq(self, deck: int):
+        """Return all EQ bands and Mixer FX to centre (0 dB / neutral)."""
+        for band in ('high', 'mid', 'low'):
+            self.set_eq(deck, band, self.EQ_CENTER)
+        self.set_filter(deck, self.EQ_CENTER)
+
+    def execute_eq_bass_swap(
+        self,
+        from_deck: int,
+        to_deck: int,
+        duration: float,
+        style: str = 'deep_house',
+    ):
+        """
+        Automate a bass-swap EQ transition between two decks.
+
+        This runs in its own thread so it can interleave with the crossfader.
+        Soft-takeover means grabbing any Z1 knob pauses automation on that
+        band only — everything else keeps moving.
+
+        Args:
+            from_deck: Outgoing deck (1 or 2)
+            to_deck:   Incoming deck (1 or 2)
+            duration:  Total duration of the EQ transition in seconds
+            style:     'deep_house'  — slow bass swap with S-curve (default)
+                       'tech_house'  — faster bass cut, keep mids longer
+        """
+        self.log(f"🎛 EQ transition ({style}): Deck {from_deck} → Deck {to_deck} over {duration:.0f}s")
+
+        # Mark all EQ CCs as automation-active (clears any stale override)
+        eq_ccs = [
+            self.MIDI_CC[f"deck_{'a' if from_deck == 1 else 'b'}_eq_{b}"]
+            for b in ('high', 'mid', 'low')
+        ] + [
+            self.MIDI_CC[f"deck_{'a' if to_deck == 1 else 'b'}_eq_{b}"]
+            for b in ('high', 'mid', 'low')
+        ]
+        for cc in eq_ccs:
+            self._eq_override[cc] = False
+
+        steps = int(duration * 5)   # 5 updates per second — smooth but not spammy
+        dt = duration / steps
+
+        # Ensure incoming deck starts with bass cut so it blends in silently
+        self.set_eq(to_deck, 'low', self.EQ_MIN)
+        self.set_eq(to_deck, 'mid', self.EQ_CENTER)
+        self.set_eq(to_deck, 'high', self.EQ_CENTER)
+        self.set_filter(to_deck, self.EQ_CENTER)
+
+        if style == 'tech_house':
+            # Faster: cut bass on out in first 40%, bring in on in during 30-80%
+            cut_steps  = int(steps * 0.40)
+            in_steps   = int(steps * 0.50)
+            settle_steps = steps - cut_steps
+
+            for i in range(cut_steps):
+                p = i / max(cut_steps - 1, 1)
+                self.set_eq(from_deck, 'low', int(self.EQ_CENTER * (1.0 - p)))
+                time.sleep(dt)
+
+            in_start = int(steps * 0.30)
+            for i in range(settle_steps):
+                if i >= in_start and i < in_start + in_steps:
+                    p = (i - in_start) / max(in_steps - 1, 1)
+                    self.set_eq(to_deck, 'low', int(self.EQ_CENTER * p))
+                time.sleep(dt)
+
+        else:  # 'deep_house' — default: slow, patient, hypnotic
+            # Phase 1 (0-50%): gradually cut bass on outgoing deck
+            phase1_steps = steps // 2
+            for i in range(phase1_steps):
+                p = i / max(phase1_steps - 1, 1)
+                # Gentle S-curve for smoother feel
+                smooth_p = p * p * (3 - 2 * p)
+                self.set_eq(from_deck, 'low', int(self.EQ_CENTER * (1.0 - smooth_p)))
+                time.sleep(dt)
+
+            # Phase 2 (50-100%): bring bass in on incoming deck
+            phase2_steps = steps - phase1_steps
+            for i in range(phase2_steps):
+                p = i / max(phase2_steps - 1, 1)
+                smooth_p = p * p * (3 - 2 * p)
+                self.set_eq(to_deck, 'low', int(self.EQ_CENTER * smooth_p))
+                time.sleep(dt)
+
+        # Snap both decks to clean final state
+        self.set_eq(from_deck, 'low', self.EQ_MIN)
+        self.set_eq(to_deck, 'low', self.EQ_CENTER)
+        self.log(f"✓ EQ bass swap complete")
 
     def load_playlist(self, playlist_path: str, analyze_audio: bool = True):
         """
@@ -363,6 +537,7 @@ class TraktorAIDJ:
                 self.log(f"     • {reason}")
 
         # Adjust blend duration based on compatibility
+        blend['score'] = compatibility['score']
         if compatibility['score'] < 50:
             # Rough transition - shorter blend
             blend['duration'] = 30
@@ -406,8 +581,26 @@ class TraktorAIDJ:
         # Start playing next deck
         self.play_deck(self.next_deck)
 
-        # Execute crossfade with intelligent duration
+        # Reset incoming deck EQ to unity before blend starts
+        self.reset_eq(self.next_deck)
+
+        # Choose EQ style based on compatibility score
+        eq_style = 'deep_house'
+        if 'score' in blend and blend['score'] < 50:
+            eq_style = 'tech_house'    # Rougher match → faster transition
+
+        # Run EQ bass swap and crossfade concurrently
+        eq_thread = threading.Thread(
+            target=self.execute_eq_bass_swap,
+            args=(self.active_deck, self.next_deck, blend['duration'], eq_style),
+            daemon=True,
+        )
+        eq_thread.start()
         self.execute_crossfade(blend['duration'], self.active_deck, self.next_deck)
+        eq_thread.join()
+
+        # Restore outgoing deck EQ to unity for next use
+        self.reset_eq(self.active_deck)
 
         # Swap active/next decks
         self.active_deck, self.next_deck = self.next_deck, self.active_deck

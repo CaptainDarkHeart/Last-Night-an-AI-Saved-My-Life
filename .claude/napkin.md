@@ -14,6 +14,10 @@
 - Super Xtreme Mapper can be used to visually edit TSI mapping files (easier than Traktor's UI)
 - X1 mk2 and Z1 in Native mode work alongside IAC Driver automation - all three active simultaneously
 - Native mode controllers don't show raw MIDI in Python listeners but DO control Traktor (test with physical buttons)
+- EQ control via IAC → Generic MIDI mapping uses CC 50-57 (see TRAKTOR_MIDI_MAPPING_GUIDE.md) ✅ CONFIRMED WORKING
+- Mixer FX Adjust (CC 56/57) works — "Filter" assignment not found in Traktor; use "Mixer FX Adjust" instead
+- EQ bass swap runs in a separate thread concurrent with execute_crossfade() - both share same duration
+- blend dict must carry 'score' key for EQ style selection — added in calculate_intelligent_blend()
 
 ## Patterns That Don't Work
 - (approaches that failed and why)
@@ -22,7 +26,7 @@
 - Project: AI DJ automation using Traktor Pro 3
 - Hardware: Kontrol X1 mk2 + Kontrol Z1 controllers
 - Architecture: Python AI DJ → IAC Driver → Traktor (+ X1 mk2 + Z1 for manual control)
-- **MIDI Mapping Status: ✅ ALL WORKING** (14 input commands + 4 output feedback)
+- **MIDI Mapping Status: ✅ ALL WORKING** (22 input commands + 4 output feedback — includes EQ + Mixer FX)
 - **Hardware Integration Status: ✅ ALL WORKING** (X1 mk2 + Z1 + IAC Driver all active)
 - **Intelligent Mixing: ✅ IMPLEMENTED** - Parser extracts mix planning data from text notes for informed transitions
 
